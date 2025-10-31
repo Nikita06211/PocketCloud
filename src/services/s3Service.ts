@@ -45,5 +45,14 @@ class S3Service {
         });
         return await getSignedUrl(this.s3Client, command, {expiresIn: 3600});
     }
+
+    async deleteFile(s3Key: string): Promise<void> {
+        const deleteParams = {
+            Bucket: process.env.AWS_S3_BUCKET!,
+            Key: s3Key,
+        };
+        
+        await this.s3Client.send(new DeleteObjectCommand(deleteParams));
+    }
 }
 export const s3Service = new S3Service();

@@ -2,6 +2,7 @@ import type {Request, Response} from 'express';
 import {fileService} from '../services/fileService';
 import { FileType } from '../entities/File';
 import type { AuthRequest } from '../middleware/auth';
+import { cleanupService } from '../services/cleanupService';
 export const uploadFile = async(req: AuthRequest, res: Response)=>{
     try{
         
@@ -57,5 +58,22 @@ export const getFile = async(req: Request, res: Response)=>{
             return res.status(410).json({ message: 'File has expired' });
         }
         res.status(500).json({ message: 'Error retrieving file', error: (error as Error).message });
+    }    
+};
+
+export const cleanupExpiredFiles = async (req: Request, res: Response) => {
+    try {
+        const result = await cleanupService.cleanupExpiredFiles();
+        res.json({
+            message: 'Cleanup completed',
+            deletedFiles: result.deleted,
+            errors: result.errors,
+        });
+    } catch (error) {
+        console.error('Cleanup error:', error);
+        res.status(500).json({
+            message: 'Cleanup failed',
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
 };
