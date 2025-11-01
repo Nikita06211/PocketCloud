@@ -9,7 +9,6 @@ export interface AuthRequest extends Request{
 
 export function auth(req: AuthRequest, res: Response, next: NextFunction){
     try{
-        console.log('auth hit, header:', req.headers.authorization);
         const header = (req.headers.authorization as string) || (req.headers as any).Authorization || '';
         const parts = header.trim().split(/\s+/);
         const token = parts.length === 2 && /^Bearer$/i.test(parts[0]) ? parts[1] : null;
@@ -20,7 +19,6 @@ export function auth(req: AuthRequest, res: Response, next: NextFunction){
         req.user = {id: payload.userId};
         next();
     } catch(err){
-        console.error('Authentication error:', err);
-        return res.status(401).json({message: 'Unauthorized', error: err});
+        return res.status(401).json({message: 'Unauthorized'});
     }
 }

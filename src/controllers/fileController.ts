@@ -5,15 +5,21 @@ import type { AuthRequest } from '../middleware/auth';
 import { cleanupService } from '../services/cleanupService';
 export const uploadFile = async(req: AuthRequest, res: Response)=>{
     try{
-        
         const { expirationHours, fileName, fileType} = req.query as unknown as { expirationHours: number, fileName: string, fileType: FileType};
-        console.log('controller hit, user:', (req as any).user);
         if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
         if(!req.body || !Buffer.isBuffer(req.body)) return res.status(400).json({message: 'Invalid request body'});
 
+        const parsedExpirationHours = expirationHours !== undefined && expirationHours !== null 
+            ? parseInt(String(expirationHours), 10) 
+            : 78;
+        
+        const finalExpirationHours = !isNaN(parsedExpirationHours) && parsedExpirationHours > 0 
+            ? parsedExpirationHours 
+            : 78;
+
         const uploadData = {
 			userId: req.user.id,
-			expirationHours: parseInt(String(expirationHours ?? '')) || 78,
+			expirationHours: finalExpirationHours,
 			fileName: fileName || 'Untitled',
 			fileType: (fileType as FileType) || 'txt',
 			fileBuffer: req.body,

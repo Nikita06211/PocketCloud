@@ -4,7 +4,10 @@ import {File} from "../entities/File";
 export const fileRepository = AppDataSource.getRepository(File);
 
 export const createFile = async(fileData: Partial<File>)=>{
-    const file = fileRepository.create(fileData);
+    const file = fileRepository.create({
+        ...fileData,
+        createdAt: new Date(),
+    });
     return await fileRepository.save(file);
 };
 
@@ -31,8 +34,17 @@ export const findExpiredFiles = async () => {
 export const isFileExpired = async(fileId: string): Promise<boolean> =>{
     const file = await findFileById(fileId);
     if(!file) return true;
+    
     const now = new Date();
-    const expirationDate = new Date(file.createdAt);
+    
+    if (!file.expirationHours || file.expirationHours <= 0) {
+        return true;
+    }
+    
+    const expirationDate = new Date(
+        file.createdAt.getTime() + file.expirationHours * 60 * 60 * 1000
+    );
+    
     return now > expirationDate;
 };
 
