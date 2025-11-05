@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+# Run this workflow on every push to the "main" branch
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Build the Docker image and push it to Docker Hub
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Get your code from the repo
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Build and push the image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .  # Build from the root directory
+          push: true  # Push the image
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pocketcloud:latest # e.g., "myusername/my-bun-app:latest"
+
+  # Job 2: Deploy the new image to the EC2 server
+  deploy:
+    # This job MUST wait for "build-and-push" to finish
+    needs: build-and-push 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        # This popular action runs SSH commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: | # Run these commands on the EC2 server
+            # 1. Pull the new image from Docker Hub
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pocketcloud:latest
+
+            # 2. Stop and remove the old container (if it exists)
+            sudo docker stop pocketcloud || true 
+            sudo docker rm pocketcloud || true
+
+            # 3. Run the new container
+            sudo docker run -d \
+              --name pocketcloud \
+              -p 3002:3002 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/pocketcloud:latest
