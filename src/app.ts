@@ -6,7 +6,7 @@ import fileRoutes from './routes/file.ts';
 
 const app = express();
 
-const corsOptions = {
+app.use(cors({
     origin: [
       'http://localhost:3001',
       'https://pocketcloud.nikitabansal.xyz'
@@ -14,9 +14,9 @@ const corsOptions = {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
+}));
+  
+// app.options('/api/*', cors());
 
 app.use(express.json());
 app.use('/api/upload', express.raw({ 
