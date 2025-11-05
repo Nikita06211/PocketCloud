@@ -1,24 +1,19 @@
-# Use the official Bun image as base
-FROM node:20-alpine AS base
+# Use Node 20 LTS
+FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and lock file
-COPY package*.json bun.lock* ./
-COPY tsconfig.json ./
+# Copy package files
+COPY package*.json tsconfig.json ./
 
 # Install dependencies
-RUN bun install --frozen-lockfile
+RUN npm install --production
 
-# Copy the rest of the application files
+# Copy the rest of the app
 COPY . .
 
-# Expose the port the app runs on
+# Expose port
 EXPOSE 3002
 
-# Set environment to production
-ENV NODE_ENV=production
-
-# Run the application directly (Bun can run TypeScript natively)
-CMD ["bun", "run", "src/server.ts"]
+# Run app
+CMD ["node", "dist/server.js"]
