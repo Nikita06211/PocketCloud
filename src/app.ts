@@ -7,7 +7,7 @@ import fileRoutes from './routes/file.ts';
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3001', 'https://pocketcloud.nikitabansal.xyz/']
+    origin: ['http://localhost:3001', 'https://pocketcloud.nikitabansal.xyz'],
     credentials: true,
 }));
 
