@@ -7,10 +7,21 @@ import fileRoutes from './routes/file.ts';
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3001', 'https://pocketcloud.nikitabansal.xyz'],
+    origin: [
+      'http://localhost:3001',
+      'https://pocketcloud.nikitabansal.xyz'
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
+  
+app.options('*', cors());
+app.use(express.json());
+app.use('/api/upload', express.raw({ 
+    type: '*/*', 
+    limit: '10mb' 
 }));
-
 app.use('/api/auth', authRoutes);
 app.use('/api', fileRoutes);
 
