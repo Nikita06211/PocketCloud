@@ -8,6 +8,7 @@
     "bcrypt": "^6.0.0",
     "bun": "^1.3.0",
     "client-s3": "aws-sdk/client-s3",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -21,6 +22,7 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/uuid": "^11.0.0"
   },

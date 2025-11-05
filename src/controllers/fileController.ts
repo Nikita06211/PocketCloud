@@ -3,6 +3,8 @@ import {fileService} from '../services/fileService';
 import { FileType } from '../entities/File';
 import type { AuthRequest } from '../middleware/auth';
 import { cleanupService } from '../services/cleanupService';
+import { findFilesByUserId } from '../repositories/fileRepository';
+import { s3Service } from '../services/s3Service';
 export const uploadFile = async(req: AuthRequest, res: Response)=>{
     try{
         const { expirationHours, fileName, fileType} = req.query as unknown as { expirationHours: number, fileName: string, fileType: FileType};
@@ -81,5 +83,46 @@ export const cleanupExpiredFiles = async (req: Request, res: Response) => {
             message: 'Cleanup failed',
             error: error instanceof Error ? error.message : String(error),
         });
+    }
+};
+
+export const getUserFiles = async(req: AuthRequest, res: Response)=>{
+    try{
+        if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+        
+        const files = await findFilesByUserId(req.user.id);
+        
+        // Filter out expired files
+        const now = new Date();
+        const validFiles = files.filter(file => {
+            const expirationDate = new Date(
+                file.createdAt.getTime() + file.expirationHours * 60 * 60 * 1000
+            );
+            return now <= expirationDate;
+        });
+        
+        // Generate presigned URLs for all valid files
+        const filesWithPresignedUrls = await Promise.all(
+            validFiles.map(async (file) => {
+                const presignedUrl = await s3Service.getFileUrl(file.s3Key);
+                return {
+                    id: file.id,
+                    name: file.name,
+                    fileType: file.fileType,
+                    createdAt: file.createdAt,
+                    expirationTime: new Date(file.createdAt.getTime() + file.expirationHours * 60 * 60 * 1000),
+                    presignedUrl,
+                };
+            })
+        );
+        
+        res.json({
+            files: filesWithPresignedUrls,
+            count: filesWithPresignedUrls.length
+        });
+    }
+    catch(error){
+        console.error('Get user files error:', error);
+        res.status(500).json({message: 'Error retrieving user files', error});
     }
 };
