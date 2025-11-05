@@ -13,12 +13,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+express.options('*', cors());
+
+app.use(express.json());
+
 app.use('/api/upload', express.raw({ 
     type: '*/*', 
     limit: '10mb' 
 }));
-
-app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api', fileRoutes);
