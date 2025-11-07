@@ -2,8 +2,7 @@ import type {Request, Response} from 'express';
 import {fileService} from '../services/fileService';
 import { FileType } from '../entities/File';
 import type { AuthRequest } from '../middleware/auth';
-import { cleanupService } from '../services/cleanupService';
-import { findFilesByUserId } from '../repositories/fileRepository';
+import { deleteExpiredFiles, findExpiredFiles, findFilesByUserId } from '../repositories/fileRepository';
 import { s3Service } from '../services/s3Service';
 export const uploadFile = async(req: AuthRequest, res: Response)=>{
     try{
@@ -69,22 +68,19 @@ export const getFile = async(req: Request, res: Response)=>{
     }    
 };
 
-export const cleanupExpiredFiles = async (req: Request, res: Response) => {
+export const getExpiredFileKeys = async (req: Request, res: Response) => {
     try {
-        const result = await cleanupService.cleanupExpiredFiles();
-        res.json({
-            message: 'Cleanup completed',
-            deletedFiles: result.deleted,
-            errors: result.errors,
-        });
-    } catch (error) {
-        console.error('Cleanup error:', error);
-        res.status(500).json({
-            message: 'Cleanup failed',
-            error: error instanceof Error ? error.message : String(error),
-        });
+      const expiredFiles = await findExpiredFiles();
+      const result = expiredFiles.map(file => ({
+        id: file.id,
+        s3Key: file.s3Key,
+      }));
+      return res.json({ files: result });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Server error" });
     }
-};
+  };
 
 export const getUserFiles = async(req: AuthRequest, res: Response)=>{
     try{
@@ -126,3 +122,12 @@ export const getUserFiles = async(req: AuthRequest, res: Response)=>{
         res.status(500).json({message: 'Error retrieving user files', error});
     }
 };
+
+export const deleteExpiredFilesApi = async (req: Request, res: Response) => {
+    try {
+      const deletedCount = await deleteExpiredFiles();
+      return res.json({ deletedCount });
+    } catch (err) {
+      return res.status(500).json({ error: "Deletion failed" });
+    }
+  };
