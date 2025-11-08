@@ -273,6 +273,3 @@ This project uses:
 - **Express.js** for the web framework
 - **AWS SDK v3** for S3 integration
 
-## License
-
-[Add your license here]
