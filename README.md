@@ -223,14 +223,6 @@ docker run -p 3002:3002 \
 }
 ```
 
-## Error Responses
-
-- `400` - Bad Request (invalid input)
-- `401` - Unauthorized (missing or invalid token)
-- `404` - File not found
-- `410` - File has expired
-- `500` - Internal server error
-
 ## Project Structure
 
 ```
