@@ -6,21 +6,20 @@ import { deleteExpiredFiles, findExpiredFiles, findFilesByUserId } from '../repo
 import { s3Service } from '../services/s3Service';
 export const uploadFile = async(req: AuthRequest, res: Response)=>{
     try{
-        const { expirationHours, fileName, fileType} = req.query as unknown as { expirationHours: number, fileName: string, fileType: FileType};
+        const rawExpiration = req.query.expirationHours;
+
+        let parsedExpirationHours = parseInt(Array.isArray(rawExpiration) ? String(rawExpiration[0]) : String(rawExpiration ?? "78"));
+        if (isNaN(parsedExpirationHours) || parsedExpirationHours <= 0) {
+            parsedExpirationHours = 78;
+        }
+
+        const { fileName, fileType } = req.query as { fileName?: string; fileType?: string };
         if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
         if(!req.body || !Buffer.isBuffer(req.body)) return res.status(400).json({message: 'Invalid request body'});
 
-        const parsedExpirationHours = expirationHours !== undefined && expirationHours !== null 
-            ? parseInt(String(expirationHours), 10) 
-            : 78;
-        
-        const finalExpirationHours = !isNaN(parsedExpirationHours) && parsedExpirationHours > 0 
-            ? parsedExpirationHours 
-            : 78;
-
         const uploadData = {
 			userId: req.user.id,
-			expirationHours: finalExpirationHours,
+			expirationHours: parsedExpirationHours,
 			fileName: fileName || 'Untitled',
 			fileType: (fileType as FileType) || 'txt',
 			fileBuffer: req.body,

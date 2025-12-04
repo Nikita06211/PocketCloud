@@ -3,13 +3,13 @@ import {File} from "../entities/File";
 
 export const fileRepository = AppDataSource.getRepository(File);
 
-export const createFile = async(fileData: Partial<File>)=>{
+export const createFile = async (fileData: Partial<File>) => {
     const file = fileRepository.create({
-        ...fileData,
-        createdAt: new Date(),
+        ...fileData,   
     });
     return await fileRepository.save(file);
 };
+
 
 export const findFileById = async(id: string)=>{
     return await fileRepository.findOne({where: {id}});
