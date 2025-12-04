@@ -13,6 +13,10 @@ PocketCloud is a minimal and secure file storage service that allows users to up
 - Automatic file expiration with configurable expiration hours (default: 78 hours)
 - Presigned URLs for secure file access
 
+## Sytem Architecture
+<img width="2206" height="1033" alt="image" src="https://github.com/user-attachments/assets/8624d114-a6a7-4b07-8ed8-285a2effb117" />
+
+
 ## Tech Stack
 
 | Layer | Technology |
